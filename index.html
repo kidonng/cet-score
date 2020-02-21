@@ -18,7 +18,41 @@
 
   <div class="no">
     <div>
-      <label>省份 <input id="province"/></label>
+      <label>
+        省份
+        <select id="province">
+          <option value="">请选择</option>
+          <option value="11">北京市</option>
+          <option value="12">天津市</option>
+          <option value="13">河北省</option>
+          <option value="14">山西省</option>
+          <option value="15">内蒙古自治区</option>
+          <option value="22">吉林省</option>
+          <option value="23">黑龙江省</option>
+          <option value="31">上海市</option>
+          <option value="32">江苏省</option>
+          <option value="34">安徽省</option>
+          <option value="35">福建省</option>
+          <option value="36">江西省</option>
+          <option value="37">山东省</option>
+          <option value="41">河南省</option>
+          <option value="42">湖北省</option>
+          <option value="43">湖南省</option>
+          <option value="44">广东省</option>
+          <option value="45">广西壮族自治区</option>
+          <option value="46">海南省</option>
+          <option value="50">重庆市</option>
+          <option value="51">四川省</option>
+          <option value="52">贵州省</option>
+          <option value="53">云南省</option>
+          <option value="54">西藏自治区</option>
+          <option value="62">甘肃省</option>
+          <option value="63">青海省</option>
+          <option value="64">宁夏回族自治区</option>
+          <option value="65">新疆维吾尔自治区</option>
+          <option value="82">澳门</option>
+        </select>
+      </label>
     </div>
     <div>
       <label>身份证号 <input id="id"/></label>
@@ -37,6 +71,16 @@
 <script>
   const $ = s => document.querySelector(s)
   const $$ = s => [...document.querySelectorAll(s)]
+  class formData {
+    constructor(e) {
+      e.forEach(i => (this[i.id] = i.value))
+    }
+
+    params() {
+      return new URLSearchParams(this).toString()
+    }
+  }
+
   const entryTable = {
     id: '成绩报告单编号',
     z: '笔试准考证号',
@@ -47,10 +91,6 @@
     w: '写作和翻译',
     kys: '口语等级'
   }
-  // const examTable = dq.rdsub.reduce((obj, i) => {
-  //   obj[i.code] = i.tab
-  //   return obj
-  // }, {})
   const examTable = [
     ,
     'CET4-D',
@@ -63,8 +103,8 @@
     'CRT6-D',
     'TFU4-D'
   ].map(i => {
-    const q = dq.rdsub.find(t => t.code === i)
-    return q && q.tab
+    const t = dq.rdsub.find(t => t.code === i)
+    return t && t.tab
   })
 
   const img = $('#captcha-img')
@@ -73,13 +113,9 @@
   img.addEventListener('click', () => (img.src = url()))
 
   $('#no-submit').addEventListener('click', async () => {
-    const form = [$('#name'), ...$$('.no input')].reduce((o, i) => {
-      o[i.id] = i.value
-      return o
-    }, {})
-    const params = new URLSearchParams(form).toString()
+    const form = new formData([$('#name'), ...$$('.no label > *')])
 
-    const res = await fetch(`/api/no.ts?${params}`)
+    const res = await fetch(`/api/no.ts?${form.params()}`)
     const json = await res.json()
     if (typeof json === 'string') {
       img.src = url()
@@ -94,25 +130,20 @@
   })
 
   $('#score-submit').addEventListener('click', async () => {
-    const form = ['name', 'no'].reduce((o, i) => {
-      o[i] = $(`#${i}`).value
-      return o
-    }, {})
+    const form = new formData([$('#name'), $('#no')])
     form.exam = form.no.startsWith('F')
       ? examTable[1]
       : form.no.startsWith('S')
       ? examTable[2]
       : examTable[form.no.charAt(9)]
-    const params = new URLSearchParams(form).toString()
 
-    const res = await fetch(`/api/score.ts?${params}`)
+    const res = await fetch(`/api/score.ts?${form.params()}`)
     const json = await res.json()
-    Object.keys(entryTable).forEach(i =>
-      $('#result').insertAdjacentHTML(
-        'beforeend',
-        `<li>${entryTable[i]}: ${json[i]}</li>`
-      )
-    )
+    Object.keys(entryTable).forEach(i => {
+      const li = document.createElement('li')
+      li.textContent = `${entryTable[i]}: ${json[i]}`
+      $('#result').appendChild(li)
+    })
   })
 </script>
 
