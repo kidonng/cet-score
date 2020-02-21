@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/data.js",
+      "destination": "http://cet.neea.edu.cn/cet/js/data.js"
+    }
+  ]
+}
