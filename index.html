@@ -3,9 +3,11 @@
 <title>CET</title>
 
 <main>
+  <h1>CET</h1>
+
   <label>姓名 <input id="name"/></label>
   <input id="no-check" type="checkbox" />
-  <label for="no-check">忘记准考证？</label>
+  <label for="no-check">忘记准考证号？</label>
 
   <div class="score">
     <div>
@@ -79,9 +81,16 @@
 
     const res = await fetch(`/api/no.ts?${params}`)
     const json = await res.json()
-    const [{ TestTicket }] = json
-    $('#no').value = TestTicket
-    $('#no-check').checked = false
+    if (typeof json === 'string') {
+      img.src = url()
+      $('#result').textContent = json
+      $('#captcha').value = null
+    } else {
+      $('#result').textContent = null
+      const [{ TestTicket }] = json
+      $('#no').value = TestTicket
+      $('#no-check').checked = false
+    }
   })
 
   $('#score-submit').addEventListener('click', async () => {

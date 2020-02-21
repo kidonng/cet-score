@@ -35,7 +35,7 @@ const table = {
 
 export default async (
   { query, headers: { cookie } }: NowRequest,
-  { send }: NowResponse
+  { json }: NowResponse
 ) => {
   const {
     province,
@@ -58,5 +58,5 @@ export default async (
     responseType: 'json'
   })
 
-  send(Message)
+  json(Message.startsWith('[') ? JSON.parse(Message) : Message)
 }
