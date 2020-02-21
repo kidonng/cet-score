@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>CET</title>
+
+<main>
+  <label>姓名 <input id="name"/></label>
+  <input id="no-check" type="checkbox" />
+  <label for="no-check">忘记准考证？</label>
+
+  <div class="score">
+    <div>
+      <label>准考证号 <input id="no"/></label>
+    </div>
+    <button id="score-submit">查询</button>
+  </div>
+
+  <div class="no">
+    <div>
+      <label>省份 <input id="province"/></label>
+    </div>
+    <div>
+      <label>身份证号 <input id="id"/></label>
+    </div>
+    <div>
+      <label>验证码 <input id="captcha"/></label>
+      <img id="captcha-img" />
+    </div>
+    <button id="no-submit">查询</button>
+  </div>
+
+  <ul id="result"></ul>
+</main>
+
+<script src="http://cet.neea.edu.cn/cet/js/data.js"></script>
+<script>
+  const $ = s => document.querySelector(s)
+  const $$ = s => [...document.querySelectorAll(s)]
+  const entryTable = {
+    id: '成绩报告单编号',
+    z: '笔试准考证号',
+    kyz: '口语准考证号',
+    s: '总分',
+    l: '听力',
+    r: '阅读',
+    w: '写作和翻译',
+    kys: '口语等级'
+  }
+  // const examTable = dq.rdsub.reduce((obj, i) => {
+  //   obj[i.code] = i.tab
+  //   return obj
+  // }, {})
+  const examTable = [
+    ,
+    'CET4-D',
+    'CET6-D',
+    'CJT4-D',
+    'CJT6-D',
+    'PHS4-D',
+    'PHS6-D',
+    'CRT4-D',
+    'CRT6-D',
+    'TFU4-D'
+  ].map(i => {
+    const q = dq.rdsub.find(t => t.code === i)
+    return q && q.tab
+  })
+
+  const img = $('#captcha-img')
+  const url = () => `/api/captcha.ts?${Math.random()}`
+  img.src = url()
+  img.addEventListener('click', () => (img.src = url()))
+
+  $('#no-submit').addEventListener('click', async () => {
+    const form = [$('#name'), ...$$('.no input')].reduce((o, i) => {
+      o[i.id] = i.value
+      return o
+    }, {})
+    const params = new URLSearchParams(form).toString()
+
+    const res = await fetch(`/api/no.ts?${params}`)
+    const json = await res.json()
+    const [{ TestTicket }] = json
+    $('#no').value = TestTicket
+    $('#no-check').checked = false
+  })
+
+  $('#score-submit').addEventListener('click', async () => {
+    const form = ['name', 'no'].reduce((o, i) => {
+      o[i] = $(`#${i}`).value
+      return o
+    }, {})
+    form.exam = form.no.startsWith('F')
+      ? examTable[1]
+      : form.no.startsWith('S')
+      ? examTable[2]
+      : examTable[form.no.charAt(9)]
+    const params = new URLSearchParams(form).toString()
+
+    const res = await fetch(`/api/score.ts?${params}`)
+    const json = await res.json()
+    Object.keys(entryTable).forEach(i =>
+      $('#result').insertAdjacentHTML(
+        'beforeend',
+        `<li>${entryTable[i]}: ${json[i]}</li>`
+      )
+    )
+  })
+</script>
+
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #no-check:checked ~ .score {
+    display: none;
+  }
+
+  #no-check:not(:checked) ~ .no {
+    display: none;
+  }
+
+  label {
+    display: inline-block;
+    margin-bottom: 0.75em;
+  }
+
+  img {
+    vertical-align: middle;
+  }
+</style>
