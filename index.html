@@ -6,13 +6,17 @@
 <main>
   <h1>CET</h1>
 
-  <label>姓名 <input id="name"/></label>
+  <label>姓名 <input id="Name"/></label>
   <input id="no-check" type="checkbox" />
   <label for="no-check">忘记准考证号？</label>
 
   <div class="score">
     <div>
       <label>准考证号 <input id="no"/></label>
+    </div>
+    <div>
+      <label>验证码 <input id="v" placeholder="填写准考证号后自动加载"/></label>
+      <img id="score-captcha" alt="验证码" title="点击刷新" />
     </div>
     <button id="score-submit">查询</button>
   </div>
@@ -21,7 +25,7 @@
     <div>
       <label>
         省份
-        <select id="province">
+        <select id="provinceCode">
           <option value="">请选择</option>
           <option value="11">北京市</option>
           <option value="12">天津市</option>
@@ -56,11 +60,11 @@
       </label>
     </div>
     <div>
-      <label>身份证号 <input id="id"/></label>
+      <label>身份证号 <input id="IDNumber"/></label>
     </div>
     <div>
-      <label>验证码 <input id="captcha"/></label>
-      <img id="captcha-img" />
+      <label>验证码 <input id="verificationCode"/></label>
+      <img id="no-captcha" alt="验证码" title="点击刷新" />
     </div>
     <button id="no-submit">查询</button>
   </div>
@@ -108,30 +112,20 @@
     return t && t.tab
   })
 
-  const img = $('#captcha-img')
-  const url = () => `/api/captcha.ts?${Math.random()}`
-  img.src = url()
-  img.addEventListener('click', () => (img.src = url()))
-
-  $('#no-submit').addEventListener('click', async () => {
-    const form = new formData([$('#name'), ...$$('.no label > *')])
-
-    const res = await fetch(`/api/no.ts?${form.params()}`)
-    const json = await res.json()
-    if (typeof json === 'string') {
-      img.src = url()
-      $('#result').textContent = json
-      $('#captcha').value = null
-    } else {
-      $('#result').textContent = null
-      const [{ TestTicket }] = json
-      $('#no').value = TestTicket
-      $('#no-check').checked = false
-    }
-  })
+  const scoreCaptcha = $('#score-captcha')
+  const scoreCaptchaUrl = () =>
+    `/api/score-captcha.ts?ik=${$('#no').value}&${Math.random()}`
+  $('#no').addEventListener(
+    'blur',
+    () => (scoreCaptcha.src = scoreCaptchaUrl())
+  )
+  scoreCaptcha.addEventListener(
+    'click',
+    () => (scoreCaptcha.src = scoreCaptchaUrl())
+  )
 
   $('#score-submit').addEventListener('click', async () => {
-    const form = new formData([$('#name'), $('#no')])
+    const form = new formData([$('#Name'), $('#no'), $('#v')])
     form.exam = form.no.startsWith('F')
       ? examTable[1]
       : form.no.startsWith('S')
@@ -140,11 +134,38 @@
 
     const res = await fetch(`/api/score.ts?${form.params()}`)
     const json = await res.json()
-    Object.keys(entryTable).forEach(i => {
-      const li = document.createElement('li')
-      li.textContent = `${entryTable[i]}: ${json[i]}`
-      $('#result').appendChild(li)
-    })
+    if (json.error) $('#result').textContent = json.error
+    else {
+      $('#result').textContent = null
+      Object.keys(entryTable).forEach(i => {
+        const li = document.createElement('li')
+        li.textContent = `${entryTable[i]}: ${json[i]}`
+        $('#result').appendChild(li)
+      })
+    }
+  })
+
+  const noCaptcha = $('#no-captcha')
+  const noCaptchaUrl = () => `/api/no-captcha.ts?${Math.random()}`
+  noCaptcha.src = noCaptchaUrl()
+  noCaptcha.addEventListener('click', () => (noCaptcha.src = noCaptchaUrl()))
+
+  $('#no-submit').addEventListener('click', async () => {
+    const form = new formData([$('#Name'), ...$$('.no label > *')])
+
+    const res = await fetch(`/api/no.ts?${form.params()}`)
+    const json = await res.json()
+    if (typeof json === 'string') {
+      noCaptcha.src = noCaptchaUrl()
+      $('#result').textContent = json
+      $('#verificationCode').value = null
+    } else {
+      $('#result').textContent = null
+      const [{ TestTicket }] = json
+      $('#no').value = TestTicket
+      scoreCaptcha.src = scoreCaptchaUrl()
+      $('#no-check').checked = false
+    }
   })
 </script>
 
@@ -172,5 +193,11 @@
 
   img {
     vertical-align: middle;
+    cursor: pointer;
+    max-height: 2em;
+  }
+
+  img:not([src]) {
+    visibility: hidden;
   }
 </style>

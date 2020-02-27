@@ -5,12 +5,7 @@ export default async (
   { query, headers: { cookie } }: NowRequest,
   { json }: NowResponse
 ) => {
-  const {
-    province: provinceCode,
-    id: IDNumber,
-    name: Name,
-    captcha: verificationCode
-  } = query
+  const { provinceCode, IDNumber, Name, verificationCode } = query
 
   const {
     body: { Message }

@@ -1,20 +1,25 @@
 import got from 'got'
 import { NowRequest, NowResponse } from '@now/node'
 
-export default async ({ query }: NowRequest, { json }: NowResponse) => {
-  const { exam, no, name } = query
+export default async (
+  { query, headers: { cookie } }: NowRequest,
+  { json }: NowResponse
+) => {
+  const { exam, no, Name, v } = query as Record<string, string>
+
+  const { body } = await got('http://cache.neea.edu.cn/cet/query', {
+    headers: {
+      referer: 'http://cet.neea.edu.cn/',
+      cookie
+    },
+    searchParams: {
+      data: [exam, no, Name].join(),
+      v
+    }
+  })
 
   const result = {
     callback: cb => cb
   }
-
-  const { body } = await got(
-    `http://cachecloud.neea.cn/cet/query?data=${exam},${no},${name}`,
-    {
-      headers: {
-        referer: 'http://cet.neea.edu.cn/cet/query_c.html'
-      }
-    }
-  )
   json(eval(body))
 }
