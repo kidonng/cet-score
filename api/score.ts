@@ -1,5 +1,5 @@
 import got from 'got'
-import { NowRequest, NowResponse } from '@now/node'
+import { NowRequest, NowResponse } from '@vercel/node'
 
 export default async (
   { query, headers: { cookie } }: NowRequest,

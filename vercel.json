@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/data.js",
+      "dest": "http://cet.neea.edu.cn/cet/js/data.js"
+    }
+  ]
+}

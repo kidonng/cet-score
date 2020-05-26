@@ -7,8 +7,8 @@
   <h1>CET</h1>
 
   <label>姓名 <input id="Name"/></label>
-  <input id="no-check" type="checkbox" />
-  <label for="no-check">忘记准考证号？</label>
+  <input class="hidden" id="no-check" type="checkbox" />
+  <label class="hidden" for="no-check">忘记准考证号？</label>
 
   <div class="score">
     <div>
@@ -139,7 +139,7 @@
       $('#result').textContent = null
       Object.keys(entryTable).forEach(i => {
         const li = document.createElement('li')
-        li.textContent = `${entryTable[i]}: ${json[i]}`
+        li.innerHTML = `<strong>${entryTable[i]}</strong>：${json[i]}`
         $('#result').appendChild(li)
       })
     }
@@ -147,7 +147,8 @@
 
   const noCaptcha = $('#no-captcha')
   const noCaptchaUrl = () => `/api/no-captcha.ts?${Math.random()}`
-  noCaptcha.src = noCaptchaUrl()
+  // 找回准考证号功能暂不可用
+  // noCaptcha.src = noCaptchaUrl()
   noCaptcha.addEventListener('click', () => (noCaptcha.src = noCaptchaUrl()))
 
   $('#no-submit').addEventListener('click', async () => {
@@ -178,6 +179,10 @@
     align-items: center;
   }
 
+  ul {
+    list-style: none;
+  }
+
   #no-check:checked ~ .score {
     display: none;
   }
@@ -199,5 +204,9 @@
 
   img:not([src]) {
     visibility: hidden;
+  }
+
+  .hidden {
+    display: none;
   }
 </style>
